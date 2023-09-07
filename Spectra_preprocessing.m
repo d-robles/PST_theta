@@ -27,11 +27,11 @@
 close all
 clear all
 
-parts = {'0017'};
+parts = {'0003'};
 session = {'S03'};
-tmstarget = {'T03'};
+tmstarget = {'T04'};
 %conditions = {'positive';'negative'};
-filepath = 'C:\Users\Kathryn\Documents\PST_DR\raw_files';% C:\Users\Kathryn\Documents\PST_DR\
+filepath = 'C:\Users\Kathryn\Documents\PST_DR\raw_files\';% C:\Users\Kathryn\Documents\PST_DR\
 exp = 'PST';
 % i_sess = 1:length(session);
 % i_targ = 1:length(tmstarget);
@@ -55,6 +55,7 @@ epoch_size = [-2.5  2.5];
 baseline = [-200    0];
 eeg_thresh_1 = [-1000,1000];
 eeg_thresh_2 = [-500,500];
+ref = [8, 16];
 
 [ALLEEG EEG CURRENTSET ALLCOM] = eeglab;
 
@@ -84,15 +85,18 @@ for i_part = 1:length(parts)
             EEG = pop_loadbv(filepath, filename, [], []); % loading in EEG data
             savename = [exp session{i_sess} tmstarget{i_targ} parts{i_part}];
             % get electrode locations
-            EEG=pop_chanedit(EEG, 'load',{'C:\Users\Kathryn\Documents\PST_DR\stms_v2.ced' 'filetype' 'autodetect'});
+            %EEG=pop_chanedit(EEG, 'load',{'C:\Users\Kathryn\Documents\PST_DR\stms.ced' 'filetype' 'autodetect'});
 
             % arithmetically rereference to linked mastoid
             % for x=1:EEG.nbchan-2
             %     EEG.data(x,:) = (EEG.data(x,:)-((EEG.data(EEG.nbchan-2,:))*.5)); %eeg.data(x,:) son la matrix original EEG.data sin los dos ultimos canales (veog, heog)
             % end
-            for x=1:EEG.nbchan-1
-                EEG.data(x,:) = (EEG.data(x,:)-((EEG.data(EEG.nbchan-2,:))*.5)); %eeg.data(x,:) son la matrix original EEG.data sin los dos ultimos canales (veog, heog)
-            end
+
+            % for x=1:EEG.nbchan-1
+            %     EEG.data(x,:) = (EEG.data(x,:)-((EEG.data(EEG.nbchan-1,:))*.5)); %eeg.data(x,:) son la matrix original EEG.data sin los dos ultimos canales (veog, heog)
+            % end
+
+             EEG = pop_reref(EEG, ref);
             %Filter the data with low pass of 30
             EEG = pop_eegfilt( EEG, high_pass, 0, [], 0);  %high pass filter
             EEG = pop_eegfilt( EEG, 0, low_pass, [], 0);  %low pass filter
@@ -147,42 +151,11 @@ for i_part = 1:length(parts)
             EEG = pop_editset(EEG, 'setname',[savename '_CD']);
             EEG = pop_saveset(EEG, 'filename',[savename '_CD'],'filepath',[filepath 'segments\']);
 
-             EEG = pop_selectevent(EEG_Copy, 'type',str2num(events{4}),'renametype','DC','deleteevents','on','deleteepochs','on','invertepochs','off');
+            EEG = pop_selectevent(EEG_Copy, 'type',str2num(events{4}),'renametype','DC','deleteevents','on','deleteepochs','on','invertepochs','off');
             EEG = pop_editset(EEG, 'setname',[savename '_DC']);
             EEG = pop_saveset(EEG, 'filename',[savename '_DC'],'filepath',[filepath 'segments\']);
 
         end
     end
 end
-%%
-%A (80%) || B (20%), hence S12 = AB, S21 = BA
-%C (70%) || %D (30%), hence S34 = CD, S43 = DC
-% '12'	'21'	'34'	'43'
-
-%Misc stuff
-
-
-% function [NewMarkers] = PST_update_feedback_marker (Markers)
-%
-% Markers_copy = Markers;
-%
-% for i = 1:size(Markers,2)
-%
-%     if strcmp(Markers(1,i).Description, 'S  6') == 1 ||  strcmp(Markers(1,i).Description, 'S  7') == 1 || strcmp(Markers(1,i).Description, 'S  8') == 1 ||  strcmp(Markers(1,i).Description, 'S  9') == 1
-%        if strcmp(Markers(1,i-2).Description , 'S 21') == 1 || strcmp(Markers(1,i-2).Description , 'S 12') == 1
-%         Markers(1,i).Description = [Markers(1,i).Description,'_ab'];
-%
-%        elseif strcmp(Markers(1,i-2).Description , 'S 34') == 1 || strcmp(Markers(1,i-2).Description , 'S 43') == 1
-%         Markers(1,i).Description = [Markers(1,i).Description,'_cd'];
-%
-%        end
-%     end
-%
-%     if strcmp(Markers(1,i).Description, 'S201') == 1
-%        Markers(1,1:i) = Markers_copy(1,1:i);
-%     end
-%
-% end
-%
-% [NewMarkers] = Markers;
 
