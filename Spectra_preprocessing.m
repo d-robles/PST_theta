@@ -22,24 +22,22 @@
 % S8 = Correct right || S9 = INCORRECT right
 
 %S77 = no response detected
-%%
+
+... I need positive ab, negative ab,
+    ... positive cd, negative cd
+    %%
 
 close all
 clear all
 
-parts = {'0003'};
+parts = {'0017'};
 session = {'S03'};
-tmstarget = {'T04'};
+tmstarget = {'T03'};
 %conditions = {'positive';'negative'};
 filepath = 'C:\Users\Kathryn\Documents\PST_DR\raw_files\';% C:\Users\Kathryn\Documents\PST_DR\
 exp = 'PST';
 % i_sess = 1:length(session);
 % i_targ = 1:length(tmstarget);
-
-%%%old settings for selection cards%%%
-% % selection_cards_far = {'1 2 3 4', '5', '21 22 23 24 25'};
-% % selection_cards_near = {'1', '2 3 4 5', '21 22 23 24 25'};
-
 
 eeg_thresh_1 = [-500,500];
 eeg_thresh_2 = [-200,200];
@@ -68,11 +66,10 @@ for i_part = 1:length(parts)
     for i_sess = 1:length(session)
         for i_targ = 1:length (tmstarget)
 
-            events = {'12' '21' '34' '43'};
-            %         selection_cards = {'1' '2'};
-            %selection_cards = {'1' '2'};
-            selection_cards = {'12' '21' '34' '43'};
-
+            % events = {'12' '21' '34' '43'};
+            % selection_cards = {'12' '21' '34' '43'};
+            events = {'6'  '7'  '8'  '9'};
+            selection_cards = {'6'  '7'  '8'  '9'};
 
             %%%load data%%%
             disp(['Processing data for participant ' parts{i_part}]);
@@ -89,14 +86,11 @@ for i_part = 1:length(parts)
 
             % arithmetically rereference to linked mastoid
             % for x=1:EEG.nbchan-2
-            %     EEG.data(x,:) = (EEG.data(x,:)-((EEG.data(EEG.nbchan-2,:))*.5)); %eeg.data(x,:) son la matrix original EEG.data sin los dos ultimos canales (veog, heog)
+            %     EEG.data(x,:) = (EEG.data(x,:)-((EEG.data(EEG.nbchan-2,:))*.5));
             % end
 
-            % for x=1:EEG.nbchan-1
-            %     EEG.data(x,:) = (EEG.data(x,:)-((EEG.data(EEG.nbchan-1,:))*.5)); %eeg.data(x,:) son la matrix original EEG.data sin los dos ultimos canales (veog, heog)
-            % end
 
-             EEG = pop_reref(EEG, ref);
+            EEG = pop_reref(EEG, ref);
             %Filter the data with low pass of 30
             EEG = pop_eegfilt( EEG, high_pass, 0, [], 0);  %high pass filter
             EEG = pop_eegfilt( EEG, 0, low_pass, [], 0);  %low pass filter
@@ -105,7 +99,7 @@ for i_part = 1:length(parts)
             all_events = length(EEG.event);
 
 
-            for i_event = 2:all_events %%% Why start from 2
+            for i_event = 2:all_events 
                 if strcmp(EEG.event(i_event).type, 'boundary')
                     continue
                 else
@@ -115,8 +109,7 @@ for i_part = 1:length(parts)
 
             %epoch
 
-            EEG = pop_epoch( EEG, events, epoch_size, 'newname',  sprintf('%s epochs' , exp), 'epochinfo', 'yes'); %Changed from [-.2 1] to [-1 2]. DR
-            %S1 is standard, S2 = target....
+            EEG = pop_epoch( EEG, events, epoch_size, 'newname',  sprintf('%s epochs' , exp), 'epochinfo', 'yes');
             EEG = pop_rmbase( EEG, baseline);
 
             %    Artifact rejection, trials with range >500 uV
@@ -139,23 +132,27 @@ for i_part = 1:length(parts)
             % EEG = pop_editset(EEG, 'setname',[savename '_fft_Targets']);
             % EEG = pop_saveset(EEG, 'filename',[savename '_fft_Targets'],'filepath',[filepath 'segments\']);
 
-            EEG = pop_selectevent(EEG_Copy, 'type',str2num(events{1}),'renametype','AB','deleteevents','on','deleteepochs','on','invertepochs','off');
-            EEG = pop_editset(EEG, 'setname',[savename '_AB']);
-            EEG = pop_saveset(EEG, 'filename',[savename '_AB'],'filepath',[filepath 'segments\']);
+            EEG = pop_selectevent(EEG_Copy, 'type',str2num(events{1}),'renametype','Pos_left','deleteevents','on','deleteepochs','on','invertepochs','off');
+            EEG = pop_editset(EEG, 'setname',[savename '_Pos_left']);
+            EEG = pop_saveset(EEG, 'filename',[savename '_Pos_left'],'filepath',[filepath 'segments\']);
 
-            EEG = pop_selectevent(EEG_Copy, 'type',str2num(events{2}),'renametype','BA','deleteevents','on','deleteepochs','on','invertepochs','off');
-            EEG = pop_editset(EEG, 'setname',[savename '_BA']);
-            EEG = pop_saveset(EEG, 'filename',[savename '_BA'],'filepath',[filepath 'segments\']);
+            EEG = pop_selectevent(EEG_Copy, 'type',str2num(events{2}),'renametype','Neg_left','deleteevents','on','deleteepochs','on','invertepochs','off');
+            EEG = pop_editset(EEG, 'setname',[savename '_Neg_left']);
+            EEG = pop_saveset(EEG, 'filename',[savename '_Neg_left'],'filepath',[filepath 'segments\']);
 
-            EEG = pop_selectevent(EEG_Copy, 'type',str2num(events{3}),'renametype','CD','deleteevents','on','deleteepochs','on','invertepochs','off');
-            EEG = pop_editset(EEG, 'setname',[savename '_CD']);
-            EEG = pop_saveset(EEG, 'filename',[savename '_CD'],'filepath',[filepath 'segments\']);
+            EEG = pop_selectevent(EEG_Copy, 'type',str2num(events{3}),'renametype','Pos_right','deleteevents','on','deleteepochs','on','invertepochs','off');
+            EEG = pop_editset(EEG, 'setname',[savename '_Pos_right']);
+            EEG = pop_saveset(EEG, 'filename',[savename '_Pos_right'],'filepath',[filepath 'segments\']);
 
-            EEG = pop_selectevent(EEG_Copy, 'type',str2num(events{4}),'renametype','DC','deleteevents','on','deleteepochs','on','invertepochs','off');
-            EEG = pop_editset(EEG, 'setname',[savename '_DC']);
-            EEG = pop_saveset(EEG, 'filename',[savename '_DC'],'filepath',[filepath 'segments\']);
+            EEG = pop_selectevent(EEG_Copy, 'type',str2num(events{4}),'renametype','Neg_right','deleteevents','on','deleteepochs','on','invertepochs','off');
+            EEG = pop_editset(EEG, 'setname',[savename '_Neg_right']);
+            EEG = pop_saveset(EEG, 'filename',[savename '_Neg_right'],'filepath',[filepath 'segments\']);
 
         end
     end
 end
+
+
+
+
 
